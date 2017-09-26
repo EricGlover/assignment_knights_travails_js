@@ -71,6 +71,7 @@ class KnightSearcher {
     this.squares = board.squares;
   }
 
+  //
   dfsFor([startX, startY], [endX, endY]) {
     let depthMap = new Map();
     let stack = new Stack();
@@ -79,12 +80,14 @@ class KnightSearcher {
     depthMap.set(current, 1);
     pathStack.push([current.x, current.y]);
     do {
+      //found the correct move
       if (current.x === endX && current.y === endY) {
-        return pathStack.stack.concat([[current.x, current.y]]);
+        return pathStack.getStack();
       }
 
       let currentDepth = depthMap.get(current);
       for (let square of current.adjacentSquares) {
+        //don't revisit squares
         if (!depthMap.has(square)) {
           stack.push(square);
           depthMap.set(square, currentDepth + 1);
@@ -99,10 +102,24 @@ class KnightSearcher {
         pathStack.pop();
         pathStack.push([current.x, current.y]);
       } else {
-        for (let i = 0; i < currentDepth - newDepth + 1; i++) {
-          pathStack.pop();
+        //we also need to pop off some stuff from the map
+        //da backtracking, remove the failed path moves
+        for (let i = 0; i < currentDepth - newDepth; i++) {
+          let popped = pathStack.pop();
+          console.log(
+            `depthChange = ${currentDepth - newDepth} popped off = ${popped}`
+          );
+          console.log(
+            `map has popped? = ${depthMap.delete(
+              this.squares[popped[0]][popped[1]]
+            )}`
+          );
         }
+        //replace the sibling path move
+        pathStack.pop();
+        pathStack.push([current.x, current.y]);
       }
+      console.log("=========================");
       console.log(
         "X: ",
         current.x,
@@ -113,7 +130,8 @@ class KnightSearcher {
         "Previous: ",
         currentDepth
       );
-      console.log(pathStack.stack);
+      console.log(pathStack.getStack());
+      console.log("=========================");
     } while (stack.length);
     return false;
   }
@@ -173,7 +191,7 @@ const board = new Board();
 // board.display();
 console.log((Date.now() - before) / 1000);
 const searcher = new KnightSearcher(board);
-console.log(searcher.dfsFor([4, 4], [4, 2]));
+console.log("answer = ", searcher.dfsFor([1, 1], [2, 3]));
 // console.log(searcher.dfsFor([8, 8]));
 // console.log(searcher.bfsFor([4, 2]));
 // console.log(searcher.bfsFor([8, 8]));
